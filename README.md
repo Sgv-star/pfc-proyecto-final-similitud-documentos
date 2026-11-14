@@ -19,10 +19,10 @@ nota.
 
 | Nombre completo | Código |
 |---|---|
-| | |
-| | |
-| | |
-| | |
+|Omar Denilson Riascos Córdoba |2559990 |
+|Juan Manuel Vásquez Segura |2559961 |
+|Santiago Gonzalez Villada |2559994 |
+|Manuel Alejandro Ortiz Zabala |2559767 |
 
 ## El problema, en una línea
 
