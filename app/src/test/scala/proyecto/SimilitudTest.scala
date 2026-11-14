@@ -40,6 +40,30 @@ class SimilitudTest extends AnyFunSuite {
     assert(normalizar("El Gato Duerme") == Vector("el", "gato", "duerme"))
   }
 
+  test("normalizar: la puntuación separa y no deja huecos") {
+    assert(normalizar("hola, mundo; adios.") ==
+      Vector("hola", "mundo", "adios"))
+  }
+
+  test("normalizar: los dígitos se conservan como parte de la palabra") {
+    assert(normalizar("RFC 2026 v1") == Vector("rfc", "2026", "v1"))
+  }
+
+  test("normalizar: un texto sin letras ni dígitos da el vector vacío") {
+    assert(normalizar("!!! ??? ---") == Vector())
+    assert(normalizar("") == Vector())
+  }
+
+  test("normalizar: los separadores repetidos y de los extremos no dejan vacías") {
+    assert(normalizar("  el  gato  ") == Vector("el", "gato"))
+    assert(normalizar("a--b") == Vector("a", "b"))
+  }
+  
+
+  test("normalizar: conserva las letras con tilde y la ene") {
+    assert(normalizar("Función Ágil, niño") == Vector("función", "ágil", "niño"))
+  }
+
   test("fragmentos: son las ventanas consecutivas, en orden") {
     val ts = Vector("a", "b", "c", "d")
     assert(fragmentos(ts, 2) ==
