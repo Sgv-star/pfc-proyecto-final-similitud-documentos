@@ -71,7 +71,24 @@ object Similitud {
    * Pasa el texto a minúsculas, convierte en separador todo carácter que no
    * sea letra o dígito y devuelve el vector de palabras no vacías.
    */
-  def normalizar(texto: String): Vector[String] = ???
+  def normalizar(texto: String): Vector[String] = {
+    val minusculas = texto.toLowerCase()
+
+    @annotation.tailrec
+    def recorrer(restante: String, palabra: String, palabras: Vector[String]): Vector[String] =
+      if (restante.isEmpty) {
+        if (palabra.isEmpty) palabras.reverse
+        else (palabra.reverse +: palabras).reverse
+      }
+      else {
+        val c = restante.head
+        if (c.isLetterOrDigit) recorrer(restante.tail, c +: palabra, palabras)
+        else if (palabra.isEmpty) recorrer(restante.tail, "", palabras)
+        else recorrer(restante.tail, "", palabra.reverse +: palabras)
+      }
+
+    recorrer(minusculas, "", Vector())
+  }
 
   /**
    * Los t - k + 1 fragmentos de k palabras consecutivas, en el orden en que
