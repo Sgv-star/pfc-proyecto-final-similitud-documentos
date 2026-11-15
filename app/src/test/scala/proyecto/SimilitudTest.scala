@@ -107,6 +107,33 @@ class SimilitudTest extends AnyFunSuite {
     assert(huella(d2, 3).size == 3)
   }
 
+  test("huella: sin fragmentos repetidos el tamaño es t - k + 1") {
+    val d: Documento = ("h0", Vector("a", "b", "c", "d"))
+    assert(huella(d, 2) == Set(Vector("a", "b"), Vector("b", "c"),
+      Vector("c", "d")))
+  }
+
+  test("huella: un fragmento repetido cuenta una sola vez") {
+    val d: Documento = ("h1", Vector("x", "y", "x", "y", "x"))
+    assert(huella(d, 2) == Set(Vector("x", "y"), Vector("y", "x")))
+  }
+
+  test("huella: si todas las palabras son iguales hay un solo fragmento") {
+    val d: Documento = ("h2", Vector("p", "p", "p", "p"))
+    assert(huella(d, 3) == Set(Vector("p", "p", "p")))
+  }
+
+  test("huella: si k supera el largo del documento la huella es vacía") {
+    val d: Documento = ("h3", Vector("el", "gato"))
+    assert(huella(d, 3).isEmpty)
+    assert(huella(("h4", Vector()), 1).isEmpty)
+  }
+
+  test("huella: usa las palabras del documento, no su identificador") {
+    val d: Documento = ("d0", Vector("uno", "dos", "tres"))
+    assert(huella(d, 2) == Set(Vector("uno", "dos"), Vector("dos", "tres")))
+  }
+
   test("huellas: hay una huella por documento") {
     assert(huellas(c1, 3).length == 3)
   }
