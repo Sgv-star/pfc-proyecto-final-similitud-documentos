@@ -109,16 +109,26 @@ object Similitud {
     fragmentos(palabrasDoc(d), k).toSet
 
   /** Una huella por documento del corpus, en el mismo orden. */
-  def huellas(c: Corpus, k: Int): Vector[Huella] = ???
+  def huellas(c: Corpus, k: Int): Vector[Huella] =
+    c.map(d => huella(d, k))
 
   /**
    * Índice de Jaccard de dos huellas, el tamaño de la intersección sobre el de
    * la unión. Dos huellas vacías dan cero y no dividen por cero.
    */
-  def jaccard(h1: Huella, h2: Huella): Double = ???
+  def jaccard(h1: Huella, h2: Huella): Double =
+  {
+    val interseccion = h1.intersect(h2).size
+    val union = h1.size + h2.size - interseccion
+    if (union == 0) 0.0 else interseccion.toDouble / union
+  }
 
   /** Las n (n - 1) / 2 parejas (i, j) con i < j, en orden. */
-  def parejas(n: Int): Vector[Pareja] = ???
+  def parejas(n: Int): Vector[Pareja] =
+    for {
+      i <- Vector.range(0, n)
+      j <- Vector.range(i + 1, n)
+    } yield (i, j)
 
   /** La similitud de cada pareja que se le pase, en el mismo orden. */
   def similitudes(hs: Vector[Huella], ps: Vector[Pareja]): Vector[Medicion] = ???

@@ -137,14 +137,90 @@ class SimilitudTest extends AnyFunSuite {
   test("huellas: hay una huella por documento") {
     assert(huellas(c1, 3).length == 3)
   }
+  test("huellas: un corpus vacío da un vector vacío") {
+    assert(huellas(Vector(), 2) == Vector())
+  }
+
+  test("huellas: la i-ésima huella corresponde al i-ésimo documento") {
+    val c: Corpus = Vector(("a", Vector("x", "y", "z")), ("b", Vector("m", "n")))
+    val hs = huellas(c, 2)
+    assert(hs(0) == Set(Vector("x", "y"), Vector("y", "z")))
+    assert(hs(1) == Set(Vector("m", "n")))
+  }
+
+  test("huellas: un documento más corto que k da huella vacía") {
+    val c: Corpus = Vector(("a", Vector("x", "y")), ("b", Vector("p", "q", "r")))
+    val hs = huellas(c, 3)
+    assert(hs(0).isEmpty && hs(1).size == 1)
+  }
+
+  test("huellas: con k = 1 la huella es el vocabulario del documento") {
+    val c: Corpus = Vector(("a", Vector("x", "y", "x", "x")))
+    assert(huellas(c, 1)(0) == Set(Vector("x"), Vector("y")))
+  }
+
+  test("huellas: documentos idénticos producen huellas iguales") {
+    val d = Vector("a", "b", "c", "d")
+    val c: Corpus = Vector(("u", d), ("v", d))
+    val hs = huellas(c, 2)
+    assert(hs(0) == hs(1) && hs.length == 2)
+  }
 
   test("jaccard: ejemplo 2, las dos parejas dan 0.75 y 0.5") {
     assert(math.abs(jaccard(huella(e0, 3), huella(e1, 3)) - 0.75) < eps)
     assert(math.abs(jaccard(huella(e2, 3), huella(e3, 3)) - 0.5) < eps)
   }
+  test("jaccard: huellas iguales dan 1.0") {
+    val h: Huella = Set(Vector("a"), Vector("b"))
+    assert(math.abs(jaccard(h, h) - 1.0) < eps)
+  }
+
+  test("jaccard: huellas disjuntas dan 0.0") {
+    assert(jaccard(Set(Vector("a")), Set(Vector("b"))) == 0.0)
+  }
+
+  test("jaccard: dos huellas vacías dan 0.0 sin dividir por cero") {
+    assert(jaccard(Set(), Set()) == 0.0)
+  }
+
+  test("jaccard: una vacía y otra no dan 0.0") {
+    assert(jaccard(Set(), Set(Vector("a"))) == 0.0)
+  }
+
+  test("jaccard: una huella contenida en otra da |A| / |B|") {
+    val a: Huella = Set(Vector("a"), Vector("b"))
+    val b: Huella = Set(Vector("a"), Vector("b"), Vector("c"), Vector("d"))
+    assert(math.abs(jaccard(a, b) - 0.5) < eps)
+  }
+
+
+
 
   test("parejas: hay n (n - 1) / 2") {
     assert(parejas(5).length == 10)
+  }
+  test("parejas: con n = 0 y n = 1 no hay parejas") {
+    assert(parejas(0) == Vector())
+    assert(parejas(1) == Vector())
+  }
+
+  test("parejas: con n = 2 solo está (0, 1)") {
+    assert(parejas(2) == Vector((0, 1)))
+  }
+
+  test("parejas: con n = 3 salen tres, en orden") {
+    assert(parejas(3) == Vector((0, 1), (0, 2), (1, 2)))
+  }
+
+  test("parejas: con n = 4 salen seis, en orden") {
+    assert(parejas(4) == Vector((0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)))
+  }
+
+  test("parejas: todas cumplen i < j, sin repetidas, y son n(n-1)/2") {
+    val ps = parejas(8)
+    assert(ps.forall(p => p._1 < p._2))
+    assert(ps.distinct.length == ps.length)
+    assert(ps.length == 8 * 7 / 2)
   }
 
   test("similitudes: el ejemplo 1 da 1/3, 0 y 0") {
