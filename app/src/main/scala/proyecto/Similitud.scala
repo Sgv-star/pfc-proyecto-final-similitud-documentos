@@ -71,16 +71,42 @@ object Similitud {
    * Pasa el texto a minúsculas, convierte en separador todo carácter que no
    * sea letra o dígito y devuelve el vector de palabras no vacías.
    */
-  def normalizar(texto: String): Vector[String] = ???
+  def normalizar(texto: String): Vector[String] = {
+    val minusculas = texto.toLowerCase()
+
+    @annotation.tailrec
+    def recorrer(restante: String, palabra: String, palabras: Vector[String]): Vector[String] =
+      if (restante.isEmpty) {
+        if (palabra.isEmpty) palabras.reverse
+        else (palabra.reverse +: palabras).reverse
+      }
+      else {
+        val c = restante.head
+        if (c.isLetterOrDigit) recorrer(restante.tail, c +: palabra, palabras)
+        else if (palabra.isEmpty) recorrer(restante.tail, "", palabras)
+        else recorrer(restante.tail, "", palabra.reverse +: palabras)
+      }
+
+    recorrer(minusculas, "", Vector())
+  }
 
   /**
    * Los t - k + 1 fragmentos de k palabras consecutivas, en el orden en que
    * aparecen; el vector vacío si el documento tiene menos de k palabras.
    */
-  def fragmentos(ts: Vector[String], k: Int): Vector[Fragmento] = ???
+  def fragmentos(ts: Vector[String], k: Int): Vector[Fragmento] = {
+
+    @annotation.tailrec
+    def ventanas(restante: Vector[String], acumulador: Vector[Fragmento]): Vector[Fragmento] =
+      if (k <= 0 || restante.length < k) acumulador.reverse
+      else ventanas(restante.drop(1), restante.take(k) +: acumulador)
+
+    ventanas(ts, Vector())
+  }
 
   /** El conjunto de fragmentos del documento: un repetido cuenta una vez. */
-  def huella(d: Documento, k: Int): Huella = ???
+  def huella(d: Documento, k: Int): Huella =
+    fragmentos(palabrasDoc(d), k).toSet
 
   /** Una huella por documento del corpus, en el mismo orden. */
   def huellas(c: Corpus, k: Int): Vector[Huella] = ???

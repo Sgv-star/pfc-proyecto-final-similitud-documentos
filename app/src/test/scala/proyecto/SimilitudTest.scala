@@ -40,16 +40,98 @@ class SimilitudTest extends AnyFunSuite {
     assert(normalizar("El Gato Duerme") == Vector("el", "gato", "duerme"))
   }
 
+  test("normalizar: la puntuación separa y no deja huecos") {
+    assert(normalizar("hola, mundo; adios.") ==
+      Vector("hola", "mundo", "adios"))
+  }
+
+  test("normalizar: los dígitos se conservan como parte de la palabra") {
+    assert(normalizar("RFC 2026 v1") == Vector("rfc", "2026", "v1"))
+  }
+
+  test("normalizar: un texto sin letras ni dígitos da el vector vacío") {
+    assert(normalizar("!!! ??? ---") == Vector())
+    assert(normalizar("") == Vector())
+  }
+
+  test("normalizar: los separadores repetidos y de los extremos no dejan vacías") {
+    assert(normalizar("  el  gato  ") == Vector("el", "gato"))
+    assert(normalizar("a--b") == Vector("a", "b"))
+  }
+
+
+  test("normalizar: conserva las letras con tilde y la ene") {
+    assert(normalizar("Función Ágil, niño") == Vector("función", "ágil", "niño"))
+  }
+
   test("fragmentos: son las ventanas consecutivas, en orden") {
     val ts = Vector("a", "b", "c", "d")
     assert(fragmentos(ts, 2) ==
       Vector(Vector("a", "b"), Vector("b", "c"), Vector("c", "d")))
   }
 
+  test("fragmentos: con k = 1 cada palabra es un fragmento") {
+    val ts = Vector("el", "gato", "duerme")
+    assert(fragmentos(ts, 1) ==
+      Vector(Vector("el"), Vector("gato"), Vector("duerme")))
+  }
+
+  test("fragmentos: con k igual al largo hay un solo fragmento") {
+    val ts = Vector("el", "gato", "duerme")
+    assert(fragmentos(ts, 3) == Vector(Vector("el", "gato", "duerme")))
+  }
+
+  test("fragmentos: si hay menos palabras que k el resultado es vacío") {
+    val ts = Vector("el", "gato")
+    assert(fragmentos(ts, 3) == Vector())
+    assert(fragmentos(Vector(), 1) == Vector())
+    assert(fragmentos(ts, 0) == Vector())
+  }
+
+  test("fragmentos: la cantidad es t - k + 1") {
+    val ts = Vector("p0", "p1", "p2", "p3", "p4", "p5")
+    assert(fragmentos(ts, 4).length == 3)
+    assert(fragmentos(ts, 6).length == 1)
+  }
+
+  test("fragmentos: conserva los fragmentos repetidos, uno por posición") {
+    val ts = Vector("a", "b", "a", "b")
+    assert(fragmentos(ts, 2) ==
+      Vector(Vector("a", "b"), Vector("b", "a"),
+             Vector("a", "b"), Vector("b", "a")))
+  }
+
   test("huella: el ejemplo 1 tiene 4, 4 y 3 fragmentos") {
     assert(huella(d0, 3).size == 4)
     assert(huella(d1, 3).size == 4)
     assert(huella(d2, 3).size == 3)
+  }
+
+  test("huella: sin fragmentos repetidos el tamaño es t - k + 1") {
+    val d: Documento = ("h0", Vector("a", "b", "c", "d"))
+    assert(huella(d, 2) == Set(Vector("a", "b"), Vector("b", "c"),
+      Vector("c", "d")))
+  }
+
+  test("huella: un fragmento repetido cuenta una sola vez") {
+    val d: Documento = ("h1", Vector("x", "y", "x", "y", "x"))
+    assert(huella(d, 2) == Set(Vector("x", "y"), Vector("y", "x")))
+  }
+
+  test("huella: si todas las palabras son iguales hay un solo fragmento") {
+    val d: Documento = ("h2", Vector("p", "p", "p", "p"))
+    assert(huella(d, 3) == Set(Vector("p", "p", "p")))
+  }
+
+  test("huella: si k supera el largo del documento la huella es vacía") {
+    val d: Documento = ("h3", Vector("el", "gato"))
+    assert(huella(d, 3).isEmpty)
+    assert(huella(("h4", Vector()), 1).isEmpty)
+  }
+
+  test("huella: usa las palabras del documento, no su identificador") {
+    val d: Documento = ("d0", Vector("uno", "dos", "tres"))
+    assert(huella(d, 2) == Set(Vector("uno", "dos"), Vector("dos", "tres")))
   }
 
   test("huellas: hay una huella por documento") {
