@@ -193,9 +193,6 @@ class SimilitudTest extends AnyFunSuite {
     assert(math.abs(jaccard(a, b) - 0.5) < eps)
   }
 
-
-
-
   test("parejas: hay n (n - 1) / 2") {
     assert(parejas(5).length == 10)
   }
@@ -228,15 +225,97 @@ class SimilitudTest extends AnyFunSuite {
     val ms = similitudes(hs, parejas(3)).map(_._3)
     assert(math.abs(ms(0) - 2.0 / 6.0) < eps && ms(1) == 0.0 && ms(2) == 0.0)
   }
+  test("similitudes: sin parejas el resultado es vacío") {
+    assert(similitudes(huellas(c1, 3), Vector()) == Vector())
+  }
+
+  test("similitudes: respeta el orden de las parejas que recibe") {
+    val h0: Huella = Set(Vector("a"), Vector("b"))
+    val h1: Huella = Set(Vector("a"))
+    val h2: Huella = Set(Vector("c"))
+    val r = similitudes(Vector(h0, h1, h2), Vector((1, 2), (0, 1)))
+    assert(r == Vector((1, 2, 0.0), (0, 1, 0.5)))
+  }
+
+  test("similitudes: dos huellas iguales dan 1.0") {
+    val h: Huella = Set(Vector("a"), Vector("b"))
+    assert(similitudes(Vector(h, h), parejas(2)) == Vector((0, 1, 1.0)))
+  }
+
+  test("similitudes: dos huellas vacías dan 0.0") {
+    val hs: Vector[Huella] = Vector(Set(), Set(Vector("a")))
+    assert(similitudes(hs, Vector((0, 1))) == Vector((0, 1, 0.0)))
+  }
+
+  test("similitudes: el ejemplo 2 con todas las parejas da 0.75 y 0.5") {
+    val ms = similitudes(huellas(c2, 3), parejas(4))
+    assert(ms.map(m => (m._1, m._2)) == parejas(4))
+    assert(math.abs(ms(0)._3 - 0.75) < eps)
+    assert(math.abs(ms(5)._3 - 0.5) < eps)
+    assert(ms.slice(1, 5).forall(m => m._3 == 0.0))
+  }
 
   test("indiceInvertido: el fragmento inicial de d0 está en d0 y en d1") {
     val idx = indiceInvertido(huellas(c1, 3))
     assert(idx(Vector("el", "gato", "duerme")) == Set(0, 1))
   }
+  test("indiceInvertido: un corpus vacío da un índice vacío") {
+    assert(indiceInvertido(Vector()) == Map())
+  }
+
+  test("indiceInvertido: un fragmento exclusivo apunta solo a su documento") {
+    val idx = indiceInvertido(huellas(c1, 3))
+    assert(idx(Vector("la", "lluvia", "moja")) == Set(2))
+  }
+
+  test("indiceInvertido: las llaves son todos los fragmentos de las huellas") {
+    val hs = huellas(c2, 3)
+    assert(indiceInvertido(hs).keySet == hs.flatten.toSet)
+  }
+
+  test("indiceInvertido: las huellas vacías no aportan entradas") {
+    val hs: Vector[Huella] = Vector(Set(), Set())
+    assert(indiceInvertido(hs) == Map())
+  }
+
+  test("indiceInvertido: los documentos se identifican por su posición") {
+    val a = Vector("a")
+    val b = Vector("b")
+    val c = Vector("c")
+    val hs: Vector[Huella] = Vector(Set(a, b), Set(b, c), Set(b))
+    assert(indiceInvertido(hs) ==
+      Map(a -> Set(0), b -> Set(0, 1, 2), c -> Set(1)))
+  }
 
   test("parejasCandidatas: en el ejemplo 2 quedan dos de seis") {
     val idx = indiceInvertido(huellas(c2, 3))
     assert(parejasCandidatas(idx) == Vector((0, 1), (2, 3)))
+  }
+  test("parejasCandidatas: un índice vacío no da parejas") {
+    assert(parejasCandidatas(Map()) == Vector())
+  }
+
+  test("parejasCandidatas: un fragmento en un solo documento no da parejas") {
+    val idx: Indice = Map(Vector("a") -> Set(0), Vector("b") -> Set(1))
+    assert(parejasCandidatas(idx) == Vector())
+  }
+
+  test("parejasCandidatas: una pareja que sale de varias entradas aparece una vez") {
+    val idx: Indice = Map(Vector("a") -> Set(0, 1), Vector("b") -> Set(0, 1))
+    assert(parejasCandidatas(idx) == Vector((0, 1)))
+  }
+
+  test("parejasCandidatas: tres documentos en una entrada dan tres parejas ordenadas") {
+    val idx: Indice = Map(Vector("a") -> Set(2, 0, 1))
+    assert(parejasCandidatas(idx) == Vector((0, 1), (0, 2), (1, 2)))
+  }
+
+  test("parejasCandidatas: reúne las parejas de varias entradas, con i < j y ordenadas") {
+    val idx: Indice = Map(
+      Vector("a") -> Set(3, 1),
+      Vector("b") -> Set(0, 2),
+      Vector("c") -> Set(1, 2))
+    assert(parejasCandidatas(idx) == Vector((0, 2), (1, 2), (1, 3)))
   }
 
   test("ranking: ordena de mayor a menor y trunca a p") {
