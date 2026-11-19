@@ -164,7 +164,11 @@ object Similitud {
      * truncadas a p. Los empates se rompen por posición, de modo que el
      * resultado no dependa del orden en que llegaron las mediciones.
      */
-    def ranking(ss: Vector[Medicion], umbral: Double, p: Int): Vector[Medicion] = ???
+    def ranking(ss: Vector[Medicion], umbral: Double, p: Int): Vector[Medicion] = {
+      val queAlcanzan = ss.filter(m => m._3 >= umbral)
+      val ordenadas = queAlcanzan.sortBy(m => (-m._3, m._1, m._2))
+      if (p <= 0) Vector() else ordenadas.take(p)
+    }
 
     /** Solución directa: compara las n (n - 1) / 2 parejas. */
     def detectarDirecto(c: Corpus, k: Int, umbral: Double,
