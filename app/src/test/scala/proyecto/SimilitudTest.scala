@@ -334,4 +334,37 @@ class SimilitudTest extends AnyFunSuite {
     assert(detectarDirecto(c1, 3, 0.2, 5) == detectarConIndice(c1, 3, 0.2, 5))
     assert(detectarDirecto(c2, 3, 0.3, 5) == detectarConIndice(c2, 3, 0.3, 5))
   }
+
+  // Casos propios de ranking.
+
+  test("ranking propio: descarta las mediciones por debajo del umbral") {
+    val ms: Vector[Medicion] = Vector((0, 1, 0.25), (1, 2, 0.75), (0, 2, 0.5))
+    val r = ranking(ms, 0.5, 10)
+    assert(r.map(m => (m._1, m._2)) == Vector((1, 2), (0, 2)))
+    assert(math.abs(r.head._3 - 0.75) < eps)
+  }
+
+  test("ranking propio: con p = 1 solo devuelve la mejor medicion") {
+    val ms: Vector[Medicion] = Vector((0, 1, 0.2), (1, 2, 0.8), (0, 2, 0.4))
+    assert(ranking(ms, 0.0, 1) == Vector((1, 2, 0.8)))
+  }
+
+  test("ranking propio: los empates se ordenan por (i, j) y no por llegada") {
+    val ms: Vector[Medicion] = Vector((2, 3, 0.5), (0, 1, 0.5), (1, 2, 0.5))
+    val esperado = Vector((0, 1, 0.5), (1, 2, 0.5), (2, 3, 0.5))
+    assert(ranking(ms, 0.0, 10) == esperado)
+    assert(ranking(ms.reverse, 0.0, 10) == esperado)
+  }
+
+  test("ranking propio: vector vacio o p no positivo dan vector vacio") {
+    val ms: Vector[Medicion] = Vector((0, 1, 0.9))
+    assert(ranking(Vector.empty[Medicion], 0.1, 5) == Vector())
+    assert(ranking(ms, 0.1, 0) == Vector())
+    assert(ranking(ms, 0.1, -3) == Vector())
+  }
+
+  test("ranking propio: el umbral es inclusivo y p puede superar la cantidad") {
+    val ms: Vector[Medicion] = Vector((1, 2, 0.3), (0, 1, 0.3), (0, 2, 0.299))
+    assert(ranking(ms, 0.3, 10) == Vector((0, 1, 0.3), (1, 2, 0.3)))
+  }
 }
