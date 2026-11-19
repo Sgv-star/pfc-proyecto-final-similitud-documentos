@@ -404,4 +404,54 @@ class SimilitudTest extends AnyFunSuite {
     val c: Corpus = Vector(("a", Vector("x")), ("b", Vector("y")))
     assert(detectarDirecto(c, 3, 0.1, 5) == Vector())
   }
+
+  // Casos propios de detectarConIndice.
+
+  test("detectarConIndice propio: un fragmento compartido por tres da tres parejas") {
+    val c: Corpus = Vector(("a", Vector("u", "v", "w")),
+                           ("b", Vector("u", "v", "x")),
+                           ("c", Vector("u", "v", "y")))
+    val r = detectarConIndice(c, 2, 0.3, 10)
+    assert(r.map(m => (m._1, m._2)) == Vector((0, 1), (0, 2), (1, 2)))
+    assert(r.forall(m => math.abs(m._3 - 1.0 / 3.0) < eps))
+  }
+
+  test("detectarConIndice propio: dos grupos sin fragmentos comunes entre si") {
+    val c: Corpus = Vector(("a", Vector("s", "t", "u")),
+                           ("b", Vector("s", "t", "v")),
+                           ("c", Vector("w", "x", "y")),
+                           ("d", Vector("w", "x", "z")))
+    val r = detectarConIndice(c, 2, 0.3, 10)
+    assert(r.map(m => (m._1, m._2)) == Vector((0, 1), (2, 3)))
+  }
+
+  test("detectarConIndice propio: una huella vacia no genera candidaturas") {
+    val c: Corpus = Vector(("a", Vector("q")),
+                           ("b", Vector("q", "r", "s")),
+                           ("c", Vector("r", "s", "t")))
+    val r = detectarConIndice(c, 2, 0.3, 10)
+    assert(r.length == 1 && r.head._1 == 1 && r.head._2 == 2)
+    assert(math.abs(r.head._3 - 1.0 / 3.0) < eps)
+  }
+
+  test("detectarConIndice propio: coincide con el directo en cinco documentos") {
+    val c: Corpus = Vector(("a", Vector("a1", "a2", "a3", "a4")),
+                           ("b", Vector("a1", "a2", "a3", "b4")),
+                           ("c", Vector("c1", "c2", "c3", "c4")),
+                           ("d", Vector("c1", "c2", "c3", "d4")),
+                           ("e", Vector("e1", "e2", "e3", "e4")))
+    val r = detectarConIndice(c, 3, 0.3, 10)
+    assert(r.map(m => (m._1, m._2)) == Vector((0, 1), (2, 3)))
+    assert(r == detectarDirecto(c, 3, 0.3, 10))
+  }
+
+  test("detectarConIndice propio: p trunca el ranking de las parejas candidatas") {
+    val c: Corpus = Vector(("a", Vector("f", "g", "h")),
+                           ("b", Vector("f", "g", "i")),
+                           ("c", Vector("f", "g", "j")),
+                           ("d", Vector("f", "g", "k")))
+    val r = detectarConIndice(c, 2, 0.3, 2)
+    assert(r.map(m => (m._1, m._2)) == Vector((0, 1), (0, 2)))
+    assert(r.forall(m => math.abs(m._3 - 1.0 / 3.0) < eps))
+  }
 }
