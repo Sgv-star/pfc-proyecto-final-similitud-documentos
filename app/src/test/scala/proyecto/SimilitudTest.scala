@@ -95,7 +95,7 @@ class SimilitudTest extends AnyFunSuite {
   }
 
   test("fragmentos: conserva los fragmentos repetidos, uno por posición") {
-    val ts = Vector("a", "b", "a", "b")
+    val ts = Vector("a", "b", "a", "b","a")
     assert(fragmentos(ts, 2) ==
       Vector(Vector("a", "b"), Vector("b", "a"),
              Vector("a", "b"), Vector("b", "a")))
