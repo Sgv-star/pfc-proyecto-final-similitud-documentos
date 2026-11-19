@@ -367,4 +367,41 @@ class SimilitudTest extends AnyFunSuite {
     val ms: Vector[Medicion] = Vector((1, 2, 0.3), (0, 1, 0.3), (0, 2, 0.299))
     assert(ranking(ms, 0.3, 10) == Vector((0, 1, 0.3), (1, 2, 0.3)))
   }
+
+  // Casos propios de detectarDirecto.
+
+  test("detectarDirecto propio: dos documentos identicos dan similitud 1") {
+    val c: Corpus = Vector(("a", Vector("x", "y", "z")),
+                           ("b", Vector("x", "y", "z")))
+    assert(detectarDirecto(c, 2, 0.5, 5) == Vector((0, 1, 1.0)))
+  }
+
+  test("detectarDirecto propio: tres documentos sin fragmentos comunes no reporta nada") {
+    val c: Corpus = Vector(("a", Vector("uno", "dos")),
+                           ("b", Vector("tres", "cuatro")),
+                           ("c", Vector("cinco", "seis")))
+    assert(detectarDirecto(c, 2, 0.5, 5) == Vector())
+  }
+
+  test("detectarDirecto propio: el umbral y p dejan solo la mejor pareja") {
+    val c: Corpus = Vector(("a", Vector("p", "q", "r")),
+                           ("b", Vector("p", "q", "r")),
+                           ("c", Vector("p", "q", "s")))
+    assert(detectarDirecto(c, 2, 0.5, 1) == Vector((0, 1, 1.0)))
+  }
+
+  test("detectarDirecto propio: dos parejas empatadas salen ordenadas por posicion") {
+    val c: Corpus = Vector(("a", Vector("m", "n", "o")),
+                           ("b", Vector("m", "n", "o")),
+                           ("c", Vector("m", "n", "p")),
+                           ("d", Vector("m", "n", "p")))
+    val r = detectarDirecto(c, 2, 0.9, 5)
+    assert(r.map(m => (m._1, m._2)) == Vector((0, 1), (2, 3)))
+    assert(r.forall(m => math.abs(m._3 - 1.0) < eps))
+  }
+
+  test("detectarDirecto propio: documentos mas cortos que k no producen mediciones") {
+    val c: Corpus = Vector(("a", Vector("x")), ("b", Vector("y")))
+    assert(detectarDirecto(c, 3, 0.1, 5) == Vector())
+  }
 }
